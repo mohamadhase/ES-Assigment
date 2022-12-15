@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import * as L from "leaflet";
 import 'leaflet.heat';
 
@@ -11,11 +11,13 @@ import {addressPoints} from './data.js';
   styleUrls: ['./map-view.component.css']
 })
 export class MapViewComponent implements OnInit  {
-
+  // expected to get input from parent component
+  @Input() tweets: any[];
   constructor() { }
 
 
   ngOnInit(): void {
+    console.log(this.tweets);
 // Leaflet has native support for raster maps, So you can create a map with a few commands only!
 
 // The Leaflet map Object

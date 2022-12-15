@@ -24,18 +24,19 @@ async def _search(query:SerchQuery) -> dict:
     """
     print(query)
     es_query = constract_query(query)
-    print(es_query)
-    res = es.search(index="tweets", body=es_query,size=100)
-    #filter the res
-    res = res["hits"]["hits"]
-    keywords = ["id","text","created_at","coordinates"]
-    res = [{key:tweet["_source"][key] for key in keywords} for tweet in res]
+   
+    res_data = es.search(index="tweets", body=es_query,size=10000) 
+    # print the min score
+    print(res_data["hits"]["max_score"])
+    res = res_data["hits"]["hits"]
+    res = [{"id":tweet["_id"],"score":tweet["_score"],"text":tweet["_source"]["text"],"coordinates":tweet["_source"]["coordinates"],"created_at":tweet["_source"]["created_at"]} for tweet in res]
+    
     print(len(res))
-    print(es_query)
-    print(query)
     response = {
     "message": HTTPStatus.OK.phrase,
     "status-code": HTTPStatus.OK,
     "data": res
     }
     return response
+
+

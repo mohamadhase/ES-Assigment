@@ -1,6 +1,5 @@
 
-<router-outlet></router-outlet>
-<!-- 
+
 <div class="s009">
     <form action="javascript:void(0);">
         <div class="inner-form">
@@ -35,9 +34,9 @@
                         <span style="display: inline;" class="desc">  Location</span>
                         <div style="display: none;" class="hi2">
                             <label for="lon">Longitude</label>
-                            <input id="lon" style="margin: 0; padding: 0; width: auto; height: auto;" name="start_date" type="number" min="-180" max = "180" value = "0"/>
+                            <input id="lon" style="margin: 0; padding: 0; width: auto; height: auto;" name="start_date" type="number" min="-180" max = "180" step="any" value="0"/>
                             <label for="start_Date">Latitude</label>
-                            <input id="lat" style="margin: 0; padding: 0; width: auto; height: auto;" name="start_date" type="number" min="-90" max = "90" value = "0"/>
+                            <input id="lat" style="margin: 0; padding: 0; width: auto; height: auto;" name="start_date" type="number" min="-90" max = "90" value = "0" step="any"/>
                             <label for="radius">radius</label>
                             <input id="radius" style="margin: 0; padding: 0; width: auto; height: auto;" name="start_date" type="number" min="1"  value = "1"/>
                             
@@ -60,10 +59,27 @@
         </div>
     </form>
 </div>
-<div id="demo">
+<div style="display: flex; justify-content:center">
+    <button id="convert_button"  class="btn-search" (click)="map_table_convert()" style="
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    "> 
+        Map
+    </button>
+    
+</div>
+
+<div id="demo" >
 
     <div class="table-responsive-vertical shadow-z-1">
-        Table starts here
         <table id="table" class="table table-hover table-mc-light-blue">
             <thead>
                 <tr>
@@ -71,6 +87,7 @@
                     <th>Created At</th>
                     <th>Text</th>
                     <th>location</th>
+                    <th>Score</th>
                 </tr>
             </thead>
             <tbody>
@@ -79,9 +96,25 @@
                     <td data-title="created_at">{{tweet['created_at']}}</td>
                     <td data-title="text">{{tweet['text']}}</td>
                     <td data-title="geo">{{tweet['coordinates']?tweet['coordinates']['coordinates']:0}}</td>
+                    <td data-title="score">{{tweet['score']}}</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
-</div>  -->
+</div> 
+
+<div class="map-setting-container" id="map-setting-container" style="display: none;" >
+    <div class="map-container" id="map-container" >
+        <div class="map" id="my-map"></div>
+    
+    </div>
+    <div class="settings">
+       <button>
+        show circle
+       </button>
+    </div>
+</div>
+
+
+
