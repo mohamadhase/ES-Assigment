@@ -3,7 +3,10 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/app",
-    "types": ["jquery"]
+    "types": ["jquery"],
+    "paths": { "@angular/*": [ "../node_modules/@angular/*" ],
+    "chart.js": ["node_modules/chart.js/dist/chart.js"]
+  }
   },
   "files": [
     "src/main.ts",

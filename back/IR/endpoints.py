@@ -35,7 +35,8 @@ async def _search(query:SerchQuery) -> dict:
     response = {
     "message": HTTPStatus.OK.phrase,
     "status-code": HTTPStatus.OK,
-    "data": res
+    "data": res,
+    "aggs":res_data["aggregations"]["most_freq_words"]["buckets"]
     }
     return response
 

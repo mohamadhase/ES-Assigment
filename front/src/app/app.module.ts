@@ -4,6 +4,9 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { MapViewComponent } from './map-view/map-view.component';
+// missingModuleFor: wordcloud 
+import { HighchartsChartModule } from 'highcharts-angular'; 
+
 
 @NgModule({
   declarations: [
@@ -13,7 +16,8 @@ import { MapViewComponent } from './map-view/map-view.component';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    HighchartsChartModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

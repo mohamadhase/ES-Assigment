@@ -9,6 +9,19 @@ def constract_query(query:SerchQuery) -> dict:
         dict: query for Elastic earch
     """
     base_query = {"query": {"bool": {"must": [], "filter": []}}}
+    aggretion = {"aggs": {} }
+    most_freq_terms_agg = {
+                "most_freq_words":{
+            "terms": {
+                "field": "text",
+                "size": 20
+            }
+        }
+    }
+
+    aggretion["aggs"].update(most_freq_terms_agg)
+    print(aggretion)
+   
     if query.term:
         base_query["query"]["bool"]["must"].append({"match": {"text": query.term}})
     if query.date:
@@ -35,4 +48,6 @@ def constract_query(query:SerchQuery) -> dict:
                 }
             }
         )
+    base_query['aggs'] = aggretion['aggs']
+    
     return base_query
