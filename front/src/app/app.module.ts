@@ -5,8 +5,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { MapViewComponent } from './map-view/map-view.component';
 // missingModuleFor: wordcloud 
-import { HighchartsChartModule } from 'highcharts-angular'; 
-
+import { HighchartsChartModule } from 'highcharts-angular'; // npm install highcharts-angular --save
 
 @NgModule({
   declarations: [

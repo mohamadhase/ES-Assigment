@@ -7,10 +7,14 @@ import 'leaflet.heat'; // npm install leaflet.heat
 import 'leaflet-easybutton';
 import 'mapbox-gl-leaflet';
 import { addressPoints } from '../app/map-view/data.js';
-import 'leaflet-draw';
+import 'leaflet-draw'; //  Can't resolve 'leaflet-draw' // npm install leaflet-draw
 // import { CloudData, CloudOptions, ZoomOnHoverOptions } from 'angular-tag-cloud-module';
 import * as Highcharts from 'highcharts';
 declare var require: any;
+
+// chart.js found in  node_modules\chart.js\dist\Chart.js
+
+// L.selectArea(); // npm install leaflet-select-area // npm install @types/leaflet-select-area // error not
 
 const More = require('highcharts/highcharts-more');
 More(Highcharts);
@@ -29,7 +33,7 @@ Accessibility(Highcharts);
 
 const Wordcloud = require('highcharts/modules/wordcloud');
 Wordcloud(Highcharts);
-
+var SelectArea = require('leaflet-area-select');
 
 @Component({
   selector: 'app-root',
@@ -49,6 +53,8 @@ export class AppComponent implements OnInit {
   statistics = false;
   cloud_data =[];
   aggs = [];
+  card = null;
+  last_obj = null;
   // options: CloudOptions = {
   //   // the width is the width of the container
   //   width: 500,
@@ -63,8 +69,9 @@ export class AppComponent implements OnInit {
   //   delay: 0.8 // Zoom will take affect after 0.8 seconds
   // };
   ngOnInit() {
+    this.card = $('#card').clone();
     this.service.search({}).subscribe((data: Object) => {
-    
+      this.last_obj = {};
       console.log(data);
       this.tweets = data['data']; // save the data in the tweets array
       this.aggs = data['aggs'];
@@ -74,50 +81,55 @@ export class AppComponent implements OnInit {
       this.add_filter_button(); // add the filter button to the map
       this.add_marker_button(); // add the marker button to the map
       this.add_statistic_button(); // add the statistic button to the map
-      this.draw_word_cloud(); // draw the word cloud
+      this.add_refresh_button(); // add the refresh button to the map
+      // call the function refresh_button_function  every 5 seconds
+      var current_obj = this;
+      setInterval(function () {
+        current_obj.refresh_button_function();
+        current_obj.draw_pie_chart();
+        current_obj.draw_word_cloud();
+
+      }, 5000);
+
     });
   }
 
   // function to draw the accessury buttons on the map
   draw_buttons() {
     var current_obj = this;
-    L.easyButton(
-      'fa fa-map',
-      function (btn, map) {
-        var drawnItems = new L.FeatureGroup();
-        map.addLayer(drawnItems);
-        L.drawLocal.draw.toolbar.buttons.circle = 'Draw a circle';
-        L.drawLocal.draw.handlers.circle.tooltip.start =
-          'Click and drag to draw circle.';
-        L.drawLocal.draw.handlers.circle.radius = 'Radius';
-        // handle closing the menu when reclicking the button
+    var drawnItems = new L.FeatureGroup();
+    this.map.addLayer(drawnItems);
+    L.drawLocal.draw.toolbar.buttons.circle = 'Draw a circle';
+    L.drawLocal.draw.handlers.circle.tooltip.start =
+      'Click and drag to draw circle.';
+    L.drawLocal.draw.handlers.circle.radius = 'Radius';
+    // handle closing the menu when reclicking the button
 
-        var drawControl = new L.Control.Draw({
-          draw: {
-            circle: {
-              shapeOptions: {
-                color: '#f357a1',
-                fillColor: '#f357a1',
-                fillOpacity: 0.2,
-              },
-            },
+    var drawControl = new L.Control.Draw({ // property 'draw' does not exist on type 'typeof Control' // npm install @types/leaflet-draw
+      draw: {
+        circle: {
+          shapeOptions: {
+            color: '#f357a1',
+            fillColor: '#f357a1',
+            fillOpacity: 0.2,
+          },
+        },
 
-            polygon: false,
-            polyline: false,
-            rectangle: false,
-            marker: false,
-            circlemarker: false,
-          },
-          edit: {
-            featureGroup: drawnItems,
-            remove: true,
-            edit: false,
-          },
-        });
-        map.addControl(drawControl);
-        current_obj.circle_button_click(drawnItems);
-      }.bind(this)
-    ).addTo(this.map);
+        polygon: false,
+        polyline: false,
+        rectangle: false,
+        marker: false,
+        circlemarker: false,
+      },
+      edit: {
+        featureGroup: drawnItems,
+        remove: true,
+        edit: false,
+      },
+    });
+    this.map.addControl(drawControl);
+    current_obj.circle_button_click(drawnItems);
+ 
   }
 
   // function to handle the click of circle button
@@ -151,7 +163,11 @@ export class AppComponent implements OnInit {
         console.log(obj);
         // get the tweets in the circle
         current_obj.service.search(obj).subscribe((data) => {
+          this.last_obj = obj;
           console.log(data);
+          current_obj.aggs = data['aggs'];
+          current_obj.tweets = data['data'];
+          current_obj.re_draw_statistic();
           var filtered_data = current_obj.formate_data(data['data']);
           current_obj.draw_heat_map(filtered_data);
         });
@@ -160,7 +176,7 @@ export class AppComponent implements OnInit {
 
     // add event listener to the delete button
     this.map.on(
-      L.Draw.Event.DELETED,
+      L.Draw.Event.DELETED, // npm install @types/leaflet-draw
       function (event) {
         console.log(event);
         // check if the choice is to delete the circle
@@ -169,8 +185,14 @@ export class AppComponent implements OnInit {
         }
         current_obj.circle = null;
         current_obj.service.search({}).subscribe((data) => {
+          this.last_obj = {};
+          current_obj.aggs = data['aggs'];
+          current_obj.tweets = data['data'];
+          current_obj.re_draw_statistic();
           var filtered_data = current_obj.formate_data(data['data']);
           current_obj.draw_heat_map(filtered_data);
+
+          
         });
       }.bind(this)
     );
@@ -251,7 +273,12 @@ export class AppComponent implements OnInit {
           }
 
           current_obj.service.search(obj).subscribe((data) => {
+            current_obj.last_obj = obj;
             console.log(data);
+            current_obj.aggs = data['aggs'];
+            current_obj.tweets = data['data'];
+
+            current_obj.re_draw_statistic();
             var filtered_data = current_obj.formate_data(data['data']);
             current_obj.draw_heat_map(filtered_data);
             current_obj.map.closePopup();
@@ -268,6 +295,19 @@ export class AppComponent implements OnInit {
     }
 
     this.map = L.map('my-map').setView([31.9522, 35.2332], 1); // initialize the map
+    this.map.selectArea.enable(
+      // what we put here?
+      {
+        position: 'topleft',
+        title: 'Select Area',
+        useGroupingSeparator: true,
+        shapeOptions: {
+          color: '#ff0000',
+          weight: 2,
+        }
+      }
+    );
+
     var myAPIKey = 'de36f5ea0ea344919c1e47dec1441f45'; // my api key
     var isRetina = L.Browser.retina; // check if the screen is retina
     var baseUrl =
@@ -315,7 +355,24 @@ export class AppComponent implements OnInit {
     }); // get the coordinates of the tweets
     return latlngs;
   }
-
+  add_refresh_button() {
+    var current_obj = this;
+    L.easyButton('fa fa-refresh', function (btn, map) {
+      current_obj.service.search(current_obj.last_obj).subscribe((data) => {
+        current_obj.tweets = data['data'];
+        current_obj.aggs = data['aggs'];
+        current_obj.draw_heat_map(current_obj.formate_data(data['data']));
+      });
+    }).addTo(this.map);
+  }
+  refresh_button_function(){
+    var current_obj = this;
+    current_obj.service.search(current_obj.last_obj).subscribe((data) => {
+      current_obj.tweets = data['data'];
+      current_obj.aggs = data['aggs'];
+      current_obj.draw_heat_map(current_obj.formate_data(data['data']));
+    });
+  }
   add_marker_button() {
     var current_obj = this;
     L.easyButton('fa fa-map-marker', function (btn, map) {
@@ -323,11 +380,24 @@ export class AppComponent implements OnInit {
       if (current_obj.marker != null) {
         current_obj.map.removeLayer(current_obj.marker);
         current_obj.marker = null;
+        $('#cards').css('display', 'none');
+        $('#word-cloud').css('display', 'block');
+        $('#pie-plot').css('display', 'block');
+        if ($('#right').is(':visible')) {
+          $('#right').hide();
+          $('#left').css('width', '100%');
+          
+        }
+        else{
+          $('#right').show();
+          $('#left').css('width', '80%');
+          $('#right').css('width', '20%' );
+          current_obj.draw_word_cloud();
+          current_obj.draw_pie_chart();
+  
+        }
         return ;
       }
-      // the marker icon dont show up on the map
-      // q: can we use one from fontawsome?
-      //a : yes we can use one from fontawsome
       
 
       var marker = L.marker([31, 35], {
@@ -340,37 +410,65 @@ export class AppComponent implements OnInit {
 
       current_obj.marker = marker;
       marker.on('dragend', function (e) {
-          // show pop up to ask for statistics type
-          var popup = L.popup()
-          .setLatLng(e.target.getLatLng())
-          .setContent(
-            '<div class="container">' +
-              '<div class="row">' +
-                '<div class="col-12">' +
-                  '<div class="form-group form-check">' +
-                    '<input type="checkbox" class="form-check-input" id="check1">' +
-                    '<label class="form-check-label" for="check1">Tweets</label>' +
-                  '</div>' +
-                '</div>' +
-              '</div>' +
-              '<div class="row">' +
-                '<div class="col-12">' +
-                  '<div class="form-group form-check">' +
-                    '<input type="checkbox" class="form-check-input" id="check2">' +
-                    '<label class="form-check-label" for="check2">Retweets</label>' +
-                  '</div>' +
-                '</div>' +
-              '</div>' +
-              '<div class="row">' +
-                '<div class="col-12">' +
-                  '<button type="button" class="btn btn-primary" id="filter_button">Filter</button>' +
-                '</div>' +
-              '</div>' +
-            '</div>'
-          )
-          .openOn(current_obj.map);
-          // add event listener to the filter button
+        $('#cards').css('display', 'block');
+        $('#word-cloud').css('display', 'none');
+        $('#pie-plot').css('display', 'none');
+        if ($('#right').is(':visible')) {
+
           
+        }
+        else{
+          $('#right').show();
+          $('#left').css('width', '80%');
+          $('#right').css('width', '20%' );
+          current_obj.draw_word_cloud();
+          current_obj.draw_pie_chart();
+  
+        }
+        var lat = marker.getLatLng().lat;
+        var lng = marker.getLatLng().lng;
+        var radius = 500;
+        var data_with_coordinates = current_obj.tweets.filter(function (el) {
+          return el['coordinates'] != null;
+        });
+        console.log(data_with_coordinates);
+        var filtered_data = data_with_coordinates.filter(function (el) {
+          var distance = current_obj.get_distance(
+            lat,
+            lng,
+            el['coordinates']['coordinates'][1],
+            el['coordinates']['coordinates'][0]
+          );
+          return distance < radius;
+        });
+        console.log(filtered_data);
+        
+        $('#cards').empty();
+        if (filtered_data.length == 0){
+          return ;
+        }
+        
+        $('#cards').css('display', 'block');
+      
+        filtered_data.forEach(function (p) {
+          var cloned_card = current_obj.card.clone();
+          console.log()
+          cloned_card.find('.card-title').text(p['id']);
+          cloned_card.find('.card-text').text(p['text']);
+          cloned_card.find('.card-subtitle-location').text(p['coordinates']['coordinates'][1] + ' , ' + p['coordinates']['coordinates'][0]);
+          cloned_card.find('.card-subtitle-date').text(p['created_at']);
+          cloned_card.find('.card-subtitle-score').text(p['score']);
+          // handle the a tag in the card add (click) event to it when its clicked run the function click_me and pass the longitude and latitude to it
+          cloned_card.find('.card-link').click(function () {
+            current_obj.map.flyTo([p['coordinates']['coordinates'][1], p['coordinates']['coordinates'][0]], 15, {
+              duration: 1
+            });
+
+      
+          });
+          $('#cards').append(cloned_card);
+        });
+
       });
     }).addTo(this.map);
   }
@@ -388,6 +486,10 @@ export class AppComponent implements OnInit {
       else{
         $('#right').show();
         $('#left').css('width', '80%');
+        $('#right').css('width', '20%' );
+        current_obj.draw_word_cloud();
+        current_obj.draw_pie_chart();
+
       }
     }).addTo(current_obj.map);
   }
@@ -415,14 +517,53 @@ export class AppComponent implements OnInit {
     
   }
 
-  draw_bar_plot() {
+  draw_pie_chart() {
+ 
+      this.cloud_data = this.aggs.map(function (p) {
+        return [p['key'], p['doc_count']];
+      }
+      );
+  
+      Highcharts.chart('pie-plot', {
+        series: [
+          {
+            type: 'pie',
+            data:
+              this.cloud_data
+            ,
+            name: 'Occurrences',
+          },
+        ],
+        title: {
+          text: 'Pie Chart',
+        },
+      });
   }
-  
-  
-}
+  re_draw_statistic() {
+    this.draw_word_cloud();
+    this.draw_pie_chart();
+  }
+  get_distance(lat1, lon1, lat2, lon2) {
+    var R = 6371; // Radius of the earth in km
+    var dLat = this.deg2rad(lat2 - lat1); // deg2rad below
+    var dLon = this.deg2rad(lon2 - lon1);
+    var a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.deg2rad(lat1)) *
+        Math.cos(this.deg2rad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    var d = R * c; // Distance in km
+    return d;
+  }
+  deg2rad(deg) {
+    return deg * (Math.PI / 180);
+  }
 
-//Cannot find module '../src/core/core.adapters.js' 
-// a: add this to the tsconfig.json file
-// "paths": {
-//   "chart.js": ["node_modules/chart.js/dist/chart.js"]
-// }
+  click_me(long,lat){
+
+  }
+ 
+
+}

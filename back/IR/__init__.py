@@ -5,7 +5,7 @@ import sys
 from elasticsearch import Elasticsearch
 import json
 from fastapi.middleware.cors import CORSMiddleware
-
+import threading
 es = Elasticsearch(hosts="http://localhost:9200")
 app = FastAPI(  
     title="IR API",
@@ -19,17 +19,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# run create_index.ipynb to create index 
-if  not es.indices.exists(index="tweets"):
+# # run create_index.ipynb to create index 
+# if  not es.indices.exists(index="tweets"):
     
-    with open("back/IR/create_tweets_index.ipynb", "r") as f:
-        notebook = json.load(f)
-        for cell in notebook["cells"]:
-            if cell["cell_type"] == "code":
-                code = "\n".join(cell["source"])
-                exec(code)
+#     with open("back/IR/create_tweets_index.ipynb", "r") as f:
+#         notebook = json.load(f)
+#         for cell in notebook["cells"]:
+#             if cell["cell_type"] == "code":
+#                 code = "\n".join(cell["source"])
+#                 exec(code)
 
 
+
+# make the socket file run in the background the file is in the same directory with name sender.py in another thread
+
+thread = threading.Thread(
+    target=os.system, args=(f"{sys.executable} IR/sender.py",)
+)
+thread.start()
 
 
 from IR import endpoints

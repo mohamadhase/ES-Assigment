@@ -1,16 +1,39 @@
+<script src="node_modules/chart.js/src/chart.js"></script>
 
-<div class="splitter">
+
+
+
+
+
+
+ <div class="splitter">
     <div class="map-container left" id="map-container"  id="left" >
         <div class="map" id="my-map"></div>
     </div>
-    <div class="right" id="right" >
+    <div class="right" id="right" style="display: none;"  >
         <div class="chart-up" id="word-cloud">
-            <!-- <angular-tag-cloud [data]="cloud_data" [width]="options.width" [height]="options.height" [overflow]="options.overflow" [zoomOnHover]="zoomOnHoverOptions" ></angular-tag-cloud> -->
         </div>
-        <div class="details-buttom" id="bar-plot">
-    </div>
-</div>
+        <div class="details-buttom" id="pie-plot" > 
+        </div>
+        <div  id = "cards" class="cards" style="display: none;" >
+            <div id="card" class="card" style="width: 18rem; margin:10px;font-size:small;text-align:center" >
+                <div class="card-body" >
+                  <h5 class="card-title">id</h5>
+                  <h6 class="card-subtitle card-subtitle-location mb-2 text-muted">long,lat</h6>
+                  <h6 class="card-subtitle card-subtitle-date mb-2 text-muted">date</h6>
+                  <h6 class="card-subtitle card-subtitle-score mb-2 text-muted">score</h6>
 
+
+                  <p class="card-text">text</p>
+                  <a  href="#" class="card-link">mark on the map</a>
+                </div>
+              </div>
+
+ 
+
+        </div>
+
+    </div> 
 
 
 
